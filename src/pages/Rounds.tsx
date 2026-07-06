@@ -412,12 +412,17 @@ const RoundsInner = ({ isActive }: { isActive: boolean }) => {
 
   const toggleUserSelection = (userId: number | string) => {
     const id = Number(userId);
-    setFormData(prev => ({
-      ...prev,
-      selected_users: prev.selected_users.includes(id)
-        ? prev.selected_users.filter(x => x !== id)
-        : [...prev.selected_users, id]
-    }));
+    setFormData(prev => {
+      const isSelected = prev.selected_users.map(Number).includes(id);
+      const nextUsers = isSelected
+        ? prev.selected_users.map(Number).filter(x => x !== id)
+        : [...prev.selected_users.map(Number), id];
+      return {
+        ...prev,
+        selected_users: nextUsers,
+        starting_consultant_id: isSelected && Number(prev.starting_consultant_id) === id ? null : prev.starting_consultant_id
+      };
+    });
   };
 
   const handleDelete = async () => {
@@ -443,7 +448,8 @@ const RoundsInner = ({ isActive }: { isActive: boolean }) => {
     const id = Number(userId);
     setFormData(prev => ({
       ...prev,
-      selected_users: prev.selected_users.filter(x => x !== id)
+      selected_users: prev.selected_users.map(Number).filter(x => x !== id),
+      starting_consultant_id: Number(prev.starting_consultant_id) === id ? null : prev.starting_consultant_id
     }));
   };
 
@@ -460,6 +466,27 @@ const RoundsInner = ({ isActive }: { isActive: boolean }) => {
         @media (min-width: 1200px) {
           .rounds-grid {
             grid-template-columns: repeat(3, 1fr) !important;
+          }
+        }
+        .modal-form-body {
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        .modal-form-col {
+          overflow-y: visible;
+        }
+        .modal-form-selected-list {
+          overflow-y: visible;
+        }
+        @media (min-width: 769px) {
+          .modal-form-body {
+            overflow-y: hidden;
+          }
+          .modal-form-col {
+            overflow-y: auto;
+          }
+          .modal-form-selected-list {
+            overflow-y: auto;
           }
         }
         .compensation-report-row {
@@ -1196,7 +1223,7 @@ const RoundsInner = ({ isActive }: { isActive: boolean }) => {
         <div className="overlay-backdrop" onClick={() => { setModalOpen(false); setShowDropdown(false); }}>
           <div
             className="card"
-            style={{ width: '100%', maxWidth: 1000, minHeight: 500, maxHeight: '90vh', animation: 'slideUp 0.2s ease-out', display: 'flex', flexDirection: 'column' }}
+            style={{ width: '100%', maxWidth: 1000, minHeight: 500, maxHeight: '90vh', animation: 'slideUp 0.2s ease-out', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem', borderBottom: '1px solid var(--color-border-light)' }}>
@@ -1224,11 +1251,11 @@ const RoundsInner = ({ isActive }: { isActive: boolean }) => {
             )}
 
             {activeTab === 'config' ? (
-              <form onSubmit={handleSave} className="subtab-enter-active" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'visible' }}>
-                <div className="responsive-grid-1-1 modal-form-body" style={{ padding: '1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flex: 1, overflow: 'visible', minHeight: 0 }}>
+              <form onSubmit={handleSave} className="subtab-enter-active" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                <div className="responsive-grid-1-1 modal-form-body" style={{ padding: '1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flex: 1, minHeight: 0 }}>
 
                   {/* LEFT COLUMN */}
-                  <div className="custom-scrollbar modal-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto', paddingRight: '4px' }}>
+                  <div className="custom-scrollbar modal-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingRight: '4px' }}>
                     <div className="form-group">
                       <label className="form-label">{t("Tên Vòng")} <span style={{ color: 'var(--color-danger)' }}>*</span></label>
                       <input
@@ -1516,7 +1543,7 @@ const RoundsInner = ({ isActive }: { isActive: boolean }) => {
 
                     {/* Selected Consultants List Block */}
                     {formData.selected_users.length > 0 && (
-                      <div className="custom-scrollbar modal-form-selected-list" style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto', paddingRight: 4, minHeight: 0 }}>
+                      <div className="custom-scrollbar modal-form-selected-list" style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, paddingRight: 4, minHeight: 0 }}>
                         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: 2 }}>{t("Tư vấn viên đã chọn ({count}):").replace('{count}', String(formData.selected_users.length))}</div>
                         {formData.selected_users.map(userId => {
                           const user = consultants.find(c => Number(c.id) === userId);
