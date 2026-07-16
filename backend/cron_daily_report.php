@@ -300,6 +300,10 @@ function runDailyReportCron($conn)
                     $adminChatIds[] = $adm['zalo_chat_id'];
                 }
             }
+            $adminGroupChatId = $settings['zalo_admin_group_chat_id'] ?? '';
+            if (!empty($adminGroupChatId)) {
+                $adminChatIds[] = $adminGroupChatId;
+            }
             if (!empty($botToken) && !empty($adminChatIds)) {
                 sendZaloMessageToMultiple($botToken, $adminChatIds, $msg);
             }

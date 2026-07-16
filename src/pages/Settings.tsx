@@ -119,6 +119,7 @@ const SettingsInner = () => {
   const [zaloBotToken, setZaloBotToken] = useState('');
   const [zaloWebhookSecret, setZaloWebhookSecret] = useState('');
   const [zaloBotLink, setZaloBotLink] = useState('');
+  const [zaloAdminGroupChatId, setZaloAdminGroupChatId] = useState('');
   const [zaloDailyReportTime, setZaloDailyReportTime] = useState('');
   const [dailyReportAdmins, setDailyReportAdmins] = useState<number[]>([]);
 
@@ -302,6 +303,7 @@ const SettingsInner = () => {
         if (json.data.zalo_bot_token) setZaloBotToken(json.data.zalo_bot_token);
         if (json.data.zalo_webhook_secret) setZaloWebhookSecret(json.data.zalo_webhook_secret);
         if (json.data.zalo_bot_link) setZaloBotLink(json.data.zalo_bot_link);
+        if (json.data.zalo_admin_group_chat_id) setZaloAdminGroupChatId(json.data.zalo_admin_group_chat_id);
         if (json.data.zalo_daily_report_time) setZaloDailyReportTime(json.data.zalo_daily_report_time);
         if (json.data.daily_report_admins) {
           try {
@@ -425,6 +427,7 @@ const SettingsInner = () => {
       zalo_bot_token: zaloBotToken,
       zalo_webhook_secret: zaloWebhookSecret,
       zalo_bot_link: zaloBotLink,
+      zalo_admin_group_chat_id: zaloAdminGroupChatId,
       zalo_daily_report_time: zaloDailyReportTime,
       daily_report_admins: dailyReportAdmins,
       zalo_weekly_report_day: zaloWeeklyReportDay,
@@ -1941,6 +1944,19 @@ function doPost(e) {
                     />
                     <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
                       {t('Link chèn vào Email chào mừng TVV.')}
+                    </p>
+                  </div>
+
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{t('Zalo Admin Group Chat ID')}</label>
+                    <input
+                      className="form-input"
+                      placeholder={t("Nhập Chat ID của Group Admin Zalo (ví dụ: group.123456...)")}
+                      value={zaloAdminGroupChatId}
+                      onChange={e => setZaloAdminGroupChatId(e.target.value)}
+                    />
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+                      {t('Mọi cảnh báo bộ lọc (Blacklist/Trùng), yêu cầu duyệt ticket đền bù, và báo cáo tổng kết ngày sẽ được gửi vào Group Chat này.')}
                     </p>
                   </div>
 

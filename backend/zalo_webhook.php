@@ -84,6 +84,17 @@ if ($eventName === 'user_send_text' || $eventName === 'message.text.received') {
     if (!empty($text) && !empty($chatId)) {
         $textLower = strtolower(trim($text));
 
+        // --- COMMAND LẤY CHAT ID ---
+        if ($textLower === '/chatid' || $textLower === '/id' || $textLower === '/info') {
+            if (!empty($botToken)) {
+                $zaloMsg = "💬 [ HỆ THỐNG DOMATION DATA ]\n\n"
+                    . "• Chat ID của phòng này: $chatId\n\n"
+                    . "💡 Bạn có thể dùng Chat ID này điền vào cấu hình Zalo Admin Group Chat ID trong trang Cài Đặt của hệ thống để nhận các thông báo cảnh báo, duyệt ticket và báo cáo ngày.";
+                sendZaloMessage($botToken, $chatId, $zaloMsg);
+            }
+            exit;
+        }
+
         // --- XỬ LÝ TEST COMMAND ---
         if ($textLower === 'test_data' || $textLower === 'test_data_admin' || $textLower === 'test_report') {
             if (!empty($botToken)) {

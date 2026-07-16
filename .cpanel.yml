@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/vhvxoigh/open.domation.net/sale_data
+    - mkdir -p $DEPLOYPATH
+    - /bin/rsync -av --exclude='.git*' --exclude='.env' backend/ $DEPLOYPATH/

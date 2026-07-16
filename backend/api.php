@@ -448,6 +448,18 @@ if (!function_exists('getTicketNotifyAdmins')) {
                 }
             }
         }
+
+        // Tích hợp Zalo Admin Group Chat ID nếu cấu hình
+        $adminGroupChatId = get_system_setting($conn, 'zalo_admin_group_chat_id');
+        if (!empty($adminGroupChatId)) {
+            $admins[] = [
+                'id' => 0,
+                'name' => 'Zalo Admin Group',
+                'email' => '',
+                'zalo_chat_id' => $adminGroupChatId
+            ];
+        }
+
         return $admins;
     }
 }

@@ -1296,6 +1296,19 @@ try {
         $logMsg("Hoàn thành cập nhật phiên bản 146.", "success");
     }
 
+    // --------------------------------------------------
+    // Step 18: Version 147 (Initialize zalo_admin_group_chat_id setting)
+    // --------------------------------------------------
+    if ($currentVersion < 147) {
+        $logMsg("Đang chạy cập nhật phiên bản 147 (Khởi tạo cấu hình group chat ID Zalo cho Admin)...", "info");
+        
+        $conn->query("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('zalo_admin_group_chat_id', '')");
+        
+        $conn->query("INSERT INTO system_settings (setting_key, setting_value) VALUES ('db_version', '147') ON DUPLICATE KEY UPDATE setting_value = '147'");
+        $currentVersion = 147;
+        $logMsg("Hoàn thành cập nhật phiên bản 147.", "success");
+    }
+
     $logMsg("Hệ thống đã cập nhật thành công lên phiên bản mới nhất: " . $currentVersion, "success");
 
 } catch (Throwable $e) {
