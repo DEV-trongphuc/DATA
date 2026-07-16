@@ -1977,65 +1977,7 @@ function doPost(e) {
                     </p>
                   </div>
 
-                  <div style={{ marginBottom: '1.25rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 500 }}>
-                      <input
-                        type="checkbox"
-                        checked={zaloNotifyOnlyGroup}
-                        onChange={e => setZaloNotifyOnlyGroup(e.target.checked)}
-                        style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }}
-                      />
-                      <span>{t('Chỉ gửi thông báo Admin qua Group Zalo (Không gửi tin nhắn riêng lẻ cho từng Admin)')}</span>
-                    </label>
-                  </div>
 
-                  <div style={{ marginBottom: '1.25rem', opacity: zaloNotifyOnlyGroup ? 0.65 : 1, transition: 'all 0.2s ease-in-out' }}>
-                    <label className="form-label" style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: zaloNotifyOnlyGroup ? 'var(--color-text-muted)' : 'var(--color-text)' }}>
-                      {t('Danh sách Admin nhận thông báo Ticket / Cảnh báo riêng lẻ')}
-                      {zaloNotifyOnlyGroup && (
-                        <span style={{ fontSize: '0.75rem', color: '#ea580c', fontWeight: 600, background: '#ffedd5', padding: '2px 8px', borderRadius: 4 }}>
-                          {t('Đang tạm khóa')}
-                        </span>
-                      )}
-                    </label>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-                      {t('Chọn các tài khoản Admin sẽ nhận tin nhắn riêng lẻ khi có Ticket báo lỗi hoặc Data bị chặn. (Lưu ý: Nếu bật tùy chọn chỉ gửi vào Group ở trên thì cấu hình riêng lẻ này sẽ không được áp dụng).')}
-                    </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.5rem' }}>
-                      {accounts.filter(a => a.role === 'admin' || a.role === 'superadmin' || Number(a.id) === 1).map((admin: any) => {
-                        const isSelected = ticketNotifyAdmins.includes(Number(admin.id));
-                        return (
-                          <label
-                            key={admin.id}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: '0.5rem',
-                              padding: '0.5rem 0.75rem', borderRadius: 8,
-                              cursor: zaloNotifyOnlyGroup ? 'not-allowed' : 'pointer',
-                              border: (isSelected && !zaloNotifyOnlyGroup) ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                              background: (isSelected && !zaloNotifyOnlyGroup) ? 'var(--color-primary-light)' : 'var(--color-surface)',
-                              fontSize: '0.875rem',
-                              color: zaloNotifyOnlyGroup ? 'var(--color-text-muted)' : 'var(--color-text)',
-                              opacity: zaloNotifyOnlyGroup ? 0.7 : 1,
-                              transition: 'all 0.15s'
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              disabled={zaloNotifyOnlyGroup}
-                              checked={isSelected}
-                              onChange={() => {
-                                setTicketNotifyAdmins(prev =>
-                                  isSelected ? prev.filter(id => id !== Number(admin.id)) : [...prev, Number(admin.id)]
-                                );
-                              }}
-                              style={{ accentColor: 'var(--color-primary)', cursor: zaloNotifyOnlyGroup ? 'not-allowed' : 'pointer' }}
-                            />
-                            <span>{admin.name || admin.username}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
 
                   <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '1rem' }}>
                     <label className="form-label">{t('Link Webhook khai báo trên Zalo Bot Platform:')}</label>
@@ -2229,6 +2171,100 @@ function doPost(e) {
                       <p style={{ fontSize: '0.8125rem', color: '#92400e', margin: 0 }}>{t('Chưa chọn Admin nào — hệ thống sẽ tự động gửi cho')} <strong>{t('tất cả tài khoản Admin')}</strong>.</p>
                     </div>
                   )}
+                </div>
+
+                {/* Thông báo Ticket & Cảnh báo Admin */}
+                <div className="card" style={{ padding: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ display: 'inline-flex', background: '#f97316', color: 'white', padding: 4, borderRadius: 6 }}><Bell size={16} /></span>
+                    {t('Thông báo Ticket & Cảnh báo Admin')}
+                  </h3>
+
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 500 }}>
+                      <input
+                        type="checkbox"
+                        checked={zaloNotifyOnlyGroup}
+                        onChange={e => setZaloNotifyOnlyGroup(e.target.checked)}
+                        style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span>{t('Chỉ gửi thông báo Admin qua Group Zalo (Không gửi tin nhắn riêng lẻ cho từng Admin)')}</span>
+                    </label>
+                  </div>
+
+                  <div style={{ opacity: zaloNotifyOnlyGroup ? 0.65 : 1, transition: 'all 0.2s ease-in-out' }}>
+                    <label className="form-label" style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: zaloNotifyOnlyGroup ? 'var(--color-text-muted)' : 'var(--color-text)', marginBottom: '0.5rem' }}>
+                      {t('Danh sách Admin nhận thông báo Ticket / Cảnh báo riêng lẻ')}
+                      {zaloNotifyOnlyGroup && (
+                        <span style={{ fontSize: '0.75rem', color: '#ea580c', fontWeight: 600, background: '#ffedd5', padding: '2px 8px', borderRadius: 4 }}>
+                          {t('Đang tạm khóa')}
+                        </span>
+                      )}
+                    </label>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+                      {t('Chọn các tài khoản Admin sẽ nhận tin nhắn riêng lẻ khi có Ticket báo lỗi hoặc Data bị chặn. (Lưu ý: Nếu bật tùy chọn chỉ gửi vào Group ở trên thì cấu hình riêng lẻ này sẽ không được áp dụng).')}
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {accounts.filter(a => a.role === 'admin' || a.role === 'superadmin' || Number(a.id) === 1).map((admin: any) => {
+                        const isSelected = ticketNotifyAdmins.includes(Number(admin.id));
+                        return (
+                          <label
+                            key={admin.id}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '0.875rem',
+                              padding: '0.875rem 1rem', borderRadius: 10,
+                              cursor: zaloNotifyOnlyGroup ? 'not-allowed' : 'pointer',
+                              border: (isSelected && !zaloNotifyOnlyGroup) ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                              background: (isSelected && !zaloNotifyOnlyGroup) ? 'var(--color-primary-light)' : 'var(--color-surface)',
+                              transition: 'all 0.15s'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              disabled={zaloNotifyOnlyGroup}
+                              checked={isSelected}
+                              onChange={() => {
+                                setTicketNotifyAdmins(prev =>
+                                  isSelected ? prev.filter(id => id !== Number(admin.id)) : [...prev, Number(admin.id)]
+                                );
+                              }}
+                              style={{ accentColor: 'var(--color-primary)', width: 16, height: 16, cursor: zaloNotifyOnlyGroup ? 'not-allowed' : 'pointer', flexShrink: 0 }}
+                            />
+                            <Avatar src={admin.avatar} name={admin.name || admin.username} size={36} />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 600, fontSize: '0.9375rem', color: (isSelected && !zaloNotifyOnlyGroup) ? 'var(--color-primary)' : 'var(--color-text)' }}>
+                                {admin.name || admin.username}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                                {admin.email && (
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <Mail size={11} /> {admin.email}
+                                  </span>
+                                )}
+                                {admin.zalo_chat_id ? (
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#0068ff' }}>
+                                    <MessageCircle size={11} /> {t('Zalo đã liên kết')}
+                                  </span>
+                                ) : (
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f59e0b' }}>
+                                    <MessageCircle size={11} /> {t('Chưa liên kết Zalo')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {isSelected && !zaloNotifyOnlyGroup && (
+                              <span style={{ background: 'var(--color-primary)', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '2px 10px', borderRadius: 20, flexShrink: 0 }}>{t('Đã chọn')}</span>
+                            )}
+                          </label>
+                        );
+                      })}
+                      {accounts.filter(a => a.role === 'admin' || a.role === 'superadmin' || Number(a.id) === 1).length === 0 && (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', background: 'var(--color-surface)', borderRadius: 10, border: '1px dashed var(--color-border)' }}>
+                          {t('Không tìm thấy tài khoản Admin nào.')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

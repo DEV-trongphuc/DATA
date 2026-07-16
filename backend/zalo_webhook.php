@@ -163,20 +163,28 @@ if ($eventName === 'user_send_text' || $eventName === 'message.text.received') {
             $adminRole = '';
             $adminName = '';
             $adminAccountId = 0;
-            $stmtCheck = $conn->prepare("SELECT id, name, role FROM accounts WHERE zalo_chat_id = ? LIMIT 1");
-            if ($stmtCheck) {
-                $stmtCheck->bind_param("s", $chatId);
-                $stmtCheck->execute();
-                $resCheck = $stmtCheck->get_result();
-                if ($resCheck && $rowCheck = $resCheck->fetch_assoc()) {
-                    $adminRole = $rowCheck['role'];
-                    if ($adminRole === 'admin' || $adminRole === 'superadmin' || $adminRole === 'assistant') {
-                        $isAdmin = true;
-                        $adminName = $rowCheck['name'] ?: 'Quản trị viên';
-                        $adminAccountId = (int) $rowCheck['id'];
+
+            $zaloAdminGroupChatId = get_system_setting($conn, 'zalo_admin_group_chat_id');
+            if (!empty($zaloAdminGroupChatId) && $chatId === $zaloAdminGroupChatId) {
+                $isAdmin = true;
+                $adminRole = 'admin';
+                $adminName = 'Group Admin';
+            } else {
+                $stmtCheck = $conn->prepare("SELECT id, name, role FROM accounts WHERE zalo_chat_id = ? LIMIT 1");
+                if ($stmtCheck) {
+                    $stmtCheck->bind_param("s", $chatId);
+                    $stmtCheck->execute();
+                    $resCheck = $stmtCheck->get_result();
+                    if ($resCheck && $rowCheck = $resCheck->fetch_assoc()) {
+                        $adminRole = $rowCheck['role'];
+                        if ($adminRole === 'admin' || $adminRole === 'superadmin' || $adminRole === 'assistant') {
+                            $isAdmin = true;
+                            $adminName = $rowCheck['name'] ?: 'Quản trị viên';
+                            $adminAccountId = (int) $rowCheck['id'];
+                        }
                     }
+                    $stmtCheck->close();
                 }
-                $stmtCheck->close();
             }
 
             if (!$isAdmin) {
