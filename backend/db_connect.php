@@ -198,6 +198,7 @@ if (!function_exists('getTicketNotifyAdmins')) {
                 while ($r = $adminRes->fetch_assoc()) {
                     $admins[] = $r;
                 }
+            }
         }
 
         // Tích hợp Zalo Admin Group Chat ID nếu cấu hình
