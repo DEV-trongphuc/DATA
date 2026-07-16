@@ -83,7 +83,7 @@ if ($eventName === 'user_send_text' || $eventName === 'message.text.received') {
 
     if (!empty($text) && !empty($chatId)) {
         // Hỗ trợ loại bỏ phần @mention bot trong group chat (ví dụ: "@Bot IDEAS DATA /report homqua")
-        if (strpos($text, '@') !== false && strpos($text, '/') !== false) {
+        if (strpos(trim($text), '@') === 0 && strpos($text, '/') !== false) {
             $slashPos = strpos($text, '/');
             $text = trim(substr($text, $slashPos));
         }
