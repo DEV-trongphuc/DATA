@@ -2647,25 +2647,63 @@ function sendHeldLeadNotifications($conn, $leadId, $name, $phone, $aiReason, $ro
     $adminIds = json_decode($adminsJson, true);
     $admins = [];
 
-    if (is_array($adminIds) && !empty($adminIds)) {
-        $adminIds = array_map('intval', $adminIds);
-        $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
-        $types = str_repeat('i', count($adminIds));
-        $adminStmt = $conn->prepare("SELECT id, email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
-        if ($adminStmt) {
-            $adminStmt->bind_param($types, ...$adminIds);
-            $adminStmt->execute();
-            $adminRes = $adminStmt->get_result();
-            if ($adminRes) {
-                while ($row = $adminRes->fetch_assoc()) {
-                    $admins[] = $row;
+    $adminGroupChatId = get_system_setting($conn, 'zalo_admin_group_chat_id');
+    $onlyGroup = get_system_setting($conn, 'zalo_notify_only_group');
+
+    if ($onlyGroup === '1' && !empty($adminGroupChatId)) {
+        if (is_array($adminIds) && !empty($adminIds)) {
+            $adminIds = array_map('intval', $adminIds);
+            $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
+            $types = str_repeat('i', count($adminIds));
+            $adminStmt = $conn->prepare("SELECT id, email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
+            if ($adminStmt) {
+                $adminStmt->bind_param($types, ...$adminIds);
+                $adminStmt->execute();
+                $adminRes = $adminStmt->get_result();
+                if ($adminRes) {
+                    while ($row = $adminRes->fetch_assoc()) {
+                        $row['zalo_chat_id'] = ''; // Tránh gửi Zalo cá nhân
+                        $admins[] = $row;
+                    }
                 }
+                $adminStmt->close();
             }
-            $adminStmt->close();
         }
+        $admins[] = [
+            'id' => 0,
+            'name' => 'Zalo Admin Group',
+            'email' => '',
+            'zalo_chat_id' => $adminGroupChatId
+        ];
     } else {
-        // Fallback: query ticket notify admins
-        $admins = getTicketNotifyAdmins($conn);
+        if (is_array($adminIds) && !empty($adminIds)) {
+            $adminIds = array_map('intval', $adminIds);
+            $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
+            $types = str_repeat('i', count($adminIds));
+            $adminStmt = $conn->prepare("SELECT id, email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
+            if ($adminStmt) {
+                $adminStmt->bind_param($types, ...$adminIds);
+                $adminStmt->execute();
+                $adminRes = $adminStmt->get_result();
+                if ($adminRes) {
+                    while ($row = $adminRes->fetch_assoc()) {
+                        $admins[] = $row;
+                    }
+                }
+                $adminStmt->close();
+            }
+            if (!empty($adminGroupChatId)) {
+                $admins[] = [
+                    'id' => 0,
+                    'name' => 'Zalo Admin Group',
+                    'email' => '',
+                    'zalo_chat_id' => $adminGroupChatId
+                ];
+            }
+        } else {
+            // Fallback: query ticket notify admins
+            $admins = getTicketNotifyAdmins($conn);
+        }
     }
 
     if (empty($admins)) {
@@ -2792,24 +2830,62 @@ function sendNewLeadApiNotificationToAdmins($conn, $connData, $leadId, $customer
     $adminIds = json_decode($adminsJson, true);
     $admins = [];
 
-    if (is_array($adminIds) && !empty($adminIds)) {
-        $adminIds = array_map('intval', $adminIds);
-        $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
-        $types = str_repeat('i', count($adminIds));
-        $adminStmt = $conn->prepare("SELECT id, email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
-        if ($adminStmt) {
-            $adminStmt->bind_param($types, ...$adminIds);
-            $adminStmt->execute();
-            $adminRes = $adminStmt->get_result();
-            if ($adminRes) {
-                while ($row = $adminRes->fetch_assoc()) {
-                    $admins[] = $row;
+    $adminGroupChatId = get_system_setting($conn, 'zalo_admin_group_chat_id');
+    $onlyGroup = get_system_setting($conn, 'zalo_notify_only_group');
+
+    if ($onlyGroup === '1' && !empty($adminGroupChatId)) {
+        if (is_array($adminIds) && !empty($adminIds)) {
+            $adminIds = array_map('intval', $adminIds);
+            $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
+            $types = str_repeat('i', count($adminIds));
+            $adminStmt = $conn->prepare("SELECT id, email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
+            if ($adminStmt) {
+                $adminStmt->bind_param($types, ...$adminIds);
+                $adminStmt->execute();
+                $adminRes = $adminStmt->get_result();
+                if ($adminRes) {
+                    while ($row = $adminRes->fetch_assoc()) {
+                        $row['zalo_chat_id'] = ''; // Tránh gửi Zalo cá nhân
+                        $admins[] = $row;
+                    }
                 }
+                $adminStmt->close();
             }
-            $adminStmt->close();
         }
+        $admins[] = [
+            'id' => 0,
+            'name' => 'Zalo Admin Group',
+            'email' => '',
+            'zalo_chat_id' => $adminGroupChatId
+        ];
     } else {
-        $admins = getTicketNotifyAdmins($conn);
+        if (is_array($adminIds) && !empty($adminIds)) {
+            $adminIds = array_map('intval', $adminIds);
+            $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
+            $types = str_repeat('i', count($adminIds));
+            $adminStmt = $conn->prepare("SELECT id, email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
+            if ($adminStmt) {
+                $adminStmt->bind_param($types, ...$adminIds);
+                $adminStmt->execute();
+                $adminRes = $adminStmt->get_result();
+                if ($adminRes) {
+                    while ($row = $adminRes->fetch_assoc()) {
+                        $admins[] = $row;
+                    }
+                }
+                $adminStmt->close();
+            }
+            if (!empty($adminGroupChatId)) {
+                $admins[] = [
+                    'id' => 0,
+                    'name' => 'Zalo Admin Group',
+                    'email' => '',
+                    'zalo_chat_id' => $adminGroupChatId
+                ];
+            }
+        } else {
+            $admins = getTicketNotifyAdmins($conn);
+        }
     }
 
     if (empty($admins)) {

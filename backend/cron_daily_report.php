@@ -26,7 +26,7 @@ function runDailyReportCron($conn)
         WHERE status = 'leave' AND leave_end IS NOT NULL AND leave_end < CURDATE()
     ");
 
-    $settingRes = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('zalo_daily_report_time', 'last_daily_report_date', 'zalo_bot_token', 'daily_report_admins', 'last_daily_report_timestamp')");
+    $settingRes = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('zalo_daily_report_time', 'last_daily_report_date', 'zalo_bot_token', 'daily_report_admins', 'last_daily_report_timestamp', 'zalo_admin_group_chat_id', 'zalo_notify_only_group')");
     $settings = [];
     if ($settingRes) {
         while ($row = $settingRes->fetch_assoc()) {
@@ -237,26 +237,61 @@ function runDailyReportCron($conn)
             }
         }
 
-        if (!empty($adminIds)) {
-            $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
-            $types = str_repeat('i', count($adminIds));
-            $adminStmt = $conn->prepare("SELECT email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
-            $adminStmt->bind_param($types, ...$adminIds);
-            $adminStmt->execute();
-            $adminRes = $adminStmt->get_result();
-        } else {
-            // Fallback: gửi tất cả Admin như trước
-            $adminRes = $conn->query("SELECT email, name, zalo_chat_id FROM accounts WHERE role = 'admin' OR role = 'superadmin' OR id = 1");
-        }
+        $adminGroupChatId = $settings['zalo_admin_group_chat_id'] ?? '';
+        $onlyGroup = $settings['zalo_notify_only_group'] ?? '0';
 
-        $admins = [];
-        if ($adminRes) {
-            while ($row = $adminRes->fetch_assoc()) {
-                $admins[] = $row;
+        if ($onlyGroup === '1' && !empty($adminGroupChatId)) {
+            if (!empty($adminIds)) {
+                $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
+                $types = str_repeat('i', count($adminIds));
+                $adminStmt = $conn->prepare("SELECT email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
+                $adminStmt->bind_param($types, ...$adminIds);
+                $adminStmt->execute();
+                $adminRes = $adminStmt->get_result();
+            } else {
+                $adminRes = $conn->query("SELECT email, name, zalo_chat_id FROM accounts WHERE role = 'admin' OR role = 'superadmin' OR id = 1");
+            }
+            $admins = [];
+            if ($adminRes) {
+                while ($row = $adminRes->fetch_assoc()) {
+                    $row['zalo_chat_id'] = ''; // Không gửi Zalo cá nhân
+                    $admins[] = $row;
+                }
+            }
+            if (isset($adminStmt)) $adminStmt->close();
+            // Thêm Group Zalo
+            $admins[] = [
+                'name' => 'Zalo Admin Group',
+                'email' => '',
+                'zalo_chat_id' => $adminGroupChatId
+            ];
+        } else {
+            if (!empty($adminIds)) {
+                $inPlaceholders = implode(',', array_fill(0, count($adminIds), '?'));
+                $types = str_repeat('i', count($adminIds));
+                $adminStmt = $conn->prepare("SELECT email, name, zalo_chat_id FROM accounts WHERE id IN ($inPlaceholders)");
+                $adminStmt->bind_param($types, ...$adminIds);
+                $adminStmt->execute();
+                $adminRes = $adminStmt->get_result();
+            } else {
+                $adminRes = $conn->query("SELECT email, name, zalo_chat_id FROM accounts WHERE role = 'admin' OR role = 'superadmin' OR id = 1");
+            }
+            $admins = [];
+            if ($adminRes) {
+                while ($row = $adminRes->fetch_assoc()) {
+                    $admins[] = $row;
+                }
+            }
+            if (isset($adminStmt)) $adminStmt->close();
+            // Tích hợp Zalo Admin Group Chat ID nếu cấu hình
+            if (!empty($adminGroupChatId)) {
+                $admins[] = [
+                    'name' => 'Zalo Admin Group',
+                    'email' => '',
+                    'zalo_chat_id' => $adminGroupChatId
+                ];
             }
         }
-        if (isset($adminStmt))
-            $adminStmt->close();
 
         if (count($admins) > 0) {
             require_once 'mailer.php';
