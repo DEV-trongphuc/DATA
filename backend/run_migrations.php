@@ -11,7 +11,7 @@ $apply = (isset($_GET['apply']) && $_GET['apply'] === 'true')
       || (isset($_POST['execute_migration']) && $_POST['execute_migration'] === '1')
       || ($isCli && in_array('--apply', $argv));
 
-$targetVersion = 146;
+$targetVersion = 147;
 $currentVersion = 0;
 
 // Query current DB version
