@@ -82,10 +82,15 @@ if ($eventName === 'user_send_text' || $eventName === 'message.text.received') {
     $fromName = 'bạn'; // Zalo webhook user_send_text thường không kèm tên, dùng default
 
     if (!empty($text) && !empty($chatId)) {
+        // Hỗ trợ loại bỏ phần @mention bot trong group chat (ví dụ: "@Bot IDEAS DATA /report homqua")
+        if (strpos($text, '@') !== false && strpos($text, '/') !== false) {
+            $slashPos = strpos($text, '/');
+            $text = trim(substr($text, $slashPos));
+        }
         $textLower = strtolower(trim($text));
 
         // --- COMMAND LẤY CHAT ID ---
-        if (strpos($textLower, '/chatid') !== false || strpos($textLower, '/id') !== false || strpos($textLower, '/info') !== false) {
+        if ($textLower === '/chatid' || $textLower === '/id' || $textLower === '/info') {
             if (!empty($botToken)) {
                 $zaloMsg = "💬 [ HỆ THỐNG DOMATION DATA ]\n\n"
                     . "• Chat ID của phòng này: $chatId\n\n"
