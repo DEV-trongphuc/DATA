@@ -85,7 +85,7 @@ if ($eventName === 'user_send_text' || $eventName === 'message.text.received') {
         $textLower = strtolower(trim($text));
 
         // --- COMMAND LẤY CHAT ID ---
-        if ($textLower === '/chatid' || $textLower === '/id' || $textLower === '/info') {
+        if (strpos($textLower, '/chatid') !== false || strpos($textLower, '/id') !== false || strpos($textLower, '/info') !== false) {
             if (!empty($botToken)) {
                 $zaloMsg = "💬 [ HỆ THỐNG DOMATION DATA ]\n\n"
                     . "• Chat ID của phòng này: $chatId\n\n"
