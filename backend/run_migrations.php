@@ -11,7 +11,7 @@ $apply = (isset($_GET['apply']) && $_GET['apply'] === 'true')
       || (isset($_POST['execute_migration']) && $_POST['execute_migration'] === '1')
       || ($isCli && in_array('--apply', $argv));
 
-$targetVersion = 147;
+$targetVersion = 148;
 $currentVersion = 0;
 
 // Query current DB version
@@ -1307,6 +1307,19 @@ try {
         $conn->query("INSERT INTO system_settings (setting_key, setting_value) VALUES ('db_version', '147') ON DUPLICATE KEY UPDATE setting_value = '147'");
         $currentVersion = 147;
         $logMsg("Hoàn thành cập nhật phiên bản 147.", "success");
+    }
+
+    // --------------------------------------------------
+    // Step 19: Version 148 (Initialize zalo_notify_only_group setting)
+    // --------------------------------------------------
+    if ($currentVersion < 148) {
+        $logMsg("Đang chạy cập nhật phiên bản 148 (Khởi tạo cấu hình zalo_notify_only_group)...", "info");
+        
+        $conn->query("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('zalo_notify_only_group', '0')");
+        
+        $conn->query("INSERT INTO system_settings (setting_key, setting_value) VALUES ('db_version', '148') ON DUPLICATE KEY UPDATE setting_value = '148'");
+        $currentVersion = 148;
+        $logMsg("Hoàn thành cập nhật phiên bản 148.", "success");
     }
 
     $logMsg("Hệ thống đã cập nhật thành công lên phiên bản mới nhất: " . $currentVersion, "success");

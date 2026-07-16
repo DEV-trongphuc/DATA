@@ -120,6 +120,8 @@ const SettingsInner = () => {
   const [zaloWebhookSecret, setZaloWebhookSecret] = useState('');
   const [zaloBotLink, setZaloBotLink] = useState('');
   const [zaloAdminGroupChatId, setZaloAdminGroupChatId] = useState('');
+  const [zaloNotifyOnlyGroup, setZaloNotifyOnlyGroup] = useState(false);
+  const [ticketNotifyAdmins, setTicketNotifyAdmins] = useState<number[]>([]);
   const [zaloDailyReportTime, setZaloDailyReportTime] = useState('');
   const [dailyReportAdmins, setDailyReportAdmins] = useState<number[]>([]);
 
@@ -304,6 +306,9 @@ const SettingsInner = () => {
         if (json.data.zalo_webhook_secret) setZaloWebhookSecret(json.data.zalo_webhook_secret);
         if (json.data.zalo_bot_link) setZaloBotLink(json.data.zalo_bot_link);
         if (json.data.zalo_admin_group_chat_id) setZaloAdminGroupChatId(json.data.zalo_admin_group_chat_id);
+        if (json.data.zalo_notify_only_group !== undefined) {
+          setZaloNotifyOnlyGroup(json.data.zalo_notify_only_group === '1' || json.data.zalo_notify_only_group === 1);
+        }
         if (json.data.zalo_daily_report_time) setZaloDailyReportTime(json.data.zalo_daily_report_time);
         if (json.data.daily_report_admins) {
           try {
@@ -386,6 +391,11 @@ const SettingsInner = () => {
           setAiScreenerManualRules([]);
         }
       }
+      
+      const ticketSettingsJson = await fetchAPI('get_ticket_settings');
+      if (ticketSettingsJson.success && ticketSettingsJson.data) {
+        setTicketNotifyAdmins(ticketSettingsJson.data.map(Number));
+      }
     } catch (e) {
       console.error(e);
     }
@@ -428,6 +438,7 @@ const SettingsInner = () => {
       zalo_webhook_secret: zaloWebhookSecret,
       zalo_bot_link: zaloBotLink,
       zalo_admin_group_chat_id: zaloAdminGroupChatId,
+      zalo_notify_only_group: zaloNotifyOnlyGroup ? '1' : '0',
       zalo_daily_report_time: zaloDailyReportTime,
       daily_report_admins: dailyReportAdmins,
       zalo_weekly_report_day: zaloWeeklyReportDay,
@@ -463,7 +474,13 @@ const SettingsInner = () => {
         method: 'POST',
         body: JSON.stringify(payload)
       });
-      if (json.success) toast.success(t("Đã lưu cấu hình thành công!"));
+      if (json.success) {
+        await fetchAPI('save_ticket_settings', {
+          method: 'POST',
+          body: JSON.stringify({ admin_ids: ticketNotifyAdmins })
+        });
+        toast.success(t("Đã lưu cấu hình thành công!"));
+      }
       else toast.error(t("Lỗi khi lưu cấu hình!"));
     } catch {
       toast.error(t("Lỗi kết nối Server"));
@@ -1958,6 +1975,55 @@ function doPost(e) {
                     <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
                       {t('Mọi cảnh báo bộ lọc (Blacklist/Trùng), yêu cầu duyệt ticket đền bù, và báo cáo tổng kết ngày sẽ được gửi vào Group Chat này.')}
                     </p>
+                  </div>
+
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 500 }}>
+                      <input
+                        type="checkbox"
+                        checked={zaloNotifyOnlyGroup}
+                        onChange={e => setZaloNotifyOnlyGroup(e.target.checked)}
+                        style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span>{t('Chỉ gửi thông báo Admin qua Group Zalo (Không gửi tin nhắn riêng lẻ cho từng Admin)')}</span>
+                    </label>
+                  </div>
+
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <label className="form-label" style={{ fontWeight: 600 }}>{t('Danh sách Admin nhận thông báo Ticket / Cảnh báo riêng lẻ')}</label>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
+                      {t('Chọn các tài khoản Admin sẽ nhận tin nhắn riêng lẻ khi có Ticket báo lỗi hoặc Data bị chặn. (Lưu ý: Nếu bật tùy chọn chỉ gửi vào Group ở trên thì cấu hình riêng lẻ này sẽ không được áp dụng).')}
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.5rem' }}>
+                      {accounts.filter(a => a.role === 'admin' || a.role === 'superadmin' || Number(a.id) === 1).map((admin: any) => {
+                        const isSelected = ticketNotifyAdmins.includes(Number(admin.id));
+                        return (
+                          <label
+                            key={admin.id}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '0.5rem',
+                              padding: '0.5rem 0.75rem', borderRadius: 8, cursor: 'pointer',
+                              border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                              background: isSelected ? 'var(--color-primary-light)' : 'var(--color-surface)',
+                              fontSize: '0.875rem',
+                              color: 'var(--color-text)'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {
+                                setTicketNotifyAdmins(prev =>
+                                  isSelected ? prev.filter(id => id !== Number(admin.id)) : [...prev, Number(admin.id)]
+                                );
+                              }}
+                              style={{ accentColor: 'var(--color-primary)' }}
+                            />
+                            <span>{admin.name || admin.username}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '1rem' }}>

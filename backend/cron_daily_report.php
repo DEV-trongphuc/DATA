@@ -293,17 +293,13 @@ function runDailyReportCron($conn)
             $msg .= "💡 Gõ /report dd/mm hoặc /report dd/mm to dd/mm để xem báo cáo.\n";
             $msg .= "💡 Gõ /tools để xem thêm các câu lệnh nhanh.";
 
-            // Collect all Admin Zalo chat IDs for parallel batch execution
             $adminChatIds = [];
             foreach ($admins as $adm) {
                 if (!empty($adm['zalo_chat_id'])) {
                     $adminChatIds[] = $adm['zalo_chat_id'];
                 }
             }
-            $adminGroupChatId = $settings['zalo_admin_group_chat_id'] ?? '';
-            if (!empty($adminGroupChatId)) {
-                $adminChatIds[] = $adminGroupChatId;
-            }
+            $adminChatIds = array_unique($adminChatIds);
             if (!empty($botToken) && !empty($adminChatIds)) {
                 sendZaloMessageToMultiple($botToken, $adminChatIds, $msg);
             }

@@ -417,6 +417,19 @@ function logAdminAction($conn, $accountId, $action, $details = [])
 if (!function_exists('getTicketNotifyAdmins')) {
     function getTicketNotifyAdmins($conn)
     {
+        $adminGroupChatId = get_system_setting($conn, 'zalo_admin_group_chat_id');
+        $onlyGroup = get_system_setting($conn, 'zalo_notify_only_group');
+        if ($onlyGroup === '1' && !empty($adminGroupChatId)) {
+            return [
+                [
+                    'id' => 0,
+                    'name' => 'Zalo Admin Group',
+                    'email' => '',
+                    'zalo_chat_id' => $adminGroupChatId
+                ]
+            ];
+        }
+
         $res = $conn->query("SELECT account_id FROM ticket_notify_settings");
         $adminIds = [];
         if ($res) {

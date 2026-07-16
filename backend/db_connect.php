@@ -153,7 +153,7 @@ try {
     $vStmt = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'db_version' LIMIT 1");
     if ($vStmt && $vStmt->num_rows > 0) {
         $dbVer = (int)$vStmt->fetch_assoc()['setting_value'];
-        if ($dbVer < 147) {
+        if ($dbVer < 148) {
             $db_needs_migration = true;
         }
     } else {
@@ -167,6 +167,19 @@ $GLOBALS['db_needs_migration'] = $db_needs_migration;
 if (!function_exists('getTicketNotifyAdmins')) {
     function getTicketNotifyAdmins($conn)
     {
+        $adminGroupChatId = get_system_setting($conn, 'zalo_admin_group_chat_id');
+        $onlyGroup = get_system_setting($conn, 'zalo_notify_only_group');
+        if ($onlyGroup === '1' && !empty($adminGroupChatId)) {
+            return [
+                [
+                    'id' => 0,
+                    'name' => 'Zalo Admin Group',
+                    'email' => '',
+                    'zalo_chat_id' => $adminGroupChatId
+                ]
+            ];
+        }
+
         $res = $conn->query("SELECT account_id FROM ticket_notify_settings");
         $adminIds = [];
         if ($res) {
